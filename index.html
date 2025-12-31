@@ -1,0 +1,313 @@
+index.html:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daphne | Countryside Chic</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'midnight-green': '#0B201B',
+                        'midnight-light': '#16302B',
+                        'sage-accent': '#9CAF88',
+                        'sage-dim': '#5F6F46',
+                        'dusty-rose': '#E8B49E',
+                        'text-main': '#E2E8F0',
+                        'text-header': '#FDFBF7',
+                        'footer-bg': '#05120F'
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Lato"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-midnight-green text-text-main font-sans antialiased flex flex-col min-h-screen">
+
+    <nav class="fixed w-full z-50 bg-midnight-green/95 backdrop-blur-sm border-b border-white/10 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center md:hidden">
+                    <button id="mobile-menu-btn" class="text-text-header hover:text-sage-accent" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="navigateTo('home')">
+                    <img src="daphne.png" alt="Daphne Logo" class="h-16 w-16 mr-3 object-contain" onerror="this.src='https://via.placeholder.com/50?text=Logo'">
+                    <span class="font-serif text-xl md:text-2xl font-bold text-text-header hidden sm:block">Daphne</span>
+                    <span class="font-serif text-lg font-bold text-text-header sm:hidden ml-2">Daphne</span>
+                </div>
+
+                <div class="hidden md:flex space-x-8 items-center">
+                    <button onclick="navigateTo('home')" class="nav-link text-text-main hover:text-sage-accent font-medium transition-colors">Home</button>
+                    <button onclick="navigateTo('shop')" class="nav-link text-text-main hover:text-sage-accent font-medium transition-colors">Shop</button>
+                    <button onclick="navigateTo('about')" class="nav-link text-text-main hover:text-sage-accent font-medium transition-colors">About Us</button>
+                    <button onclick="navigateTo('cart')" class="nav-link text-text-main hover:text-sage-accent font-medium transition-colors">Cart</button>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-6">
+                    <div id="weather-widget" class="flex items-center text-xs text-sage-accent border border-white/10 px-4 h-10 rounded-full bg-midnight-light hidden lg:flex">
+                        <i data-lucide="cloud" class="w-4 h-4 mr-2"></i>
+                        <span id="weather-text">Loading...</span>
+                    </div>
+                    <button class="text-text-main hover:text-sage-accent transition-colors relative" onclick="navigateTo('cart')">
+                        <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-dusty-rose text-midnight-green text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center opacity-0 transition-opacity">0</span>
+                    </button>
+                    <div id="auth-section">
+                        <button onclick="navigateTo('login')" class="bg-sage-accent text-midnight-green px-6 h-10 rounded-full font-bold text-sm hover:bg-white transition-colors flex items-center justify-center">Login</button>
+                    </div>
+                    <div id="user-profile" class="hidden flex items-center gap-2 cursor-pointer" onclick="logout()">
+                        <img id="user-avatar" src="" class="h-10 w-10 rounded-full border border-sage-accent object-cover aspect-square">
+                        <span id="user-name" class="text-sm font-bold text-text-header hidden xl:block">User</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-midnight-light p-4 space-y-2 border-t border-white/10">
+            <button onclick="navigateTo('home')" class="block text-text-main py-2 hover:text-sage-accent">Home</button>
+            <button onclick="navigateTo('shop')" class="block text-text-main py-2 hover:text-sage-accent">Shop</button>
+            <button onclick="navigateTo('about')" class="block text-text-main py-2 hover:text-sage-accent">About</button>
+            <button onclick="navigateTo('cart')" class="block text-text-main py-2 hover:text-sage-accent">Cart</button>
+            <button onclick="navigateTo('login')" class="block text-text-main py-2 hover:text-sage-accent">My Account</button>
+        </div>
+    </nav>
+
+    <main id="app-container" class="pt-20 flex-grow relative min-h-screen"></main>
+
+    <footer class="bg-footer-bg text-cream-bg pt-12 pb-8 border-t border-white/10 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center md:text-left">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-4">
+                        <img src="daphne.png" alt="Logo" class="h-10 w-10 object-contain" onerror="this.style.display='none'">
+                        <h4 class="font-serif text-lg text-sage-accent">Daphne</h4>
+                    </div>
+                    <p class="text-sm text-gray-500">Fine porcelain for your midnight tea.</p>
+                </div>
+                <div>
+                    <h4 class="font-serif text-lg mb-4 text-sage-accent">Links</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><button onclick="navigateTo('shop')">Shop All</button></li>
+                        <li><button onclick="navigateTo('about')">About Us</button></li>
+                        <li><button onclick="navigateTo('login')">My Account</button></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-serif text-lg mb-4 text-sage-accent">Contact</h4>
+                    <p class="text-sm text-gray-400">İzmir, Turkey</p>
+                    <p class="text-sm text-gray-400">hello@daphnesdream.com</p>
+                </div>
+            </div>
+            <div class="border-t border-white/5 mt-8 pt-8 text-xs text-gray-600 text-center">© 2025 Daphne. Final Project.</div>
+        </div>
+    </footer>
+
+    <template id="view-home">
+       
+        <section class="relative pt-12 pb-20 lg:pt-24 lg:pb-32 overflow-hidden">
+             <div class="absolute inset-0 z-0">
+                <div class="absolute top-0 right-0 w-1/3 h-full bg-midnight-light/50 rounded-bl-[100px] blur-3xl"></div>
+                <div class="absolute bottom-0 left-0 w-1/4 h-1/2 bg-dusty-rose/5 rounded-tr-[100px] blur-3xl"></div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center lg:text-left">
+                <div class="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
+                    <div class="mb-12 lg:mb-0 fade-in">
+                        <span class="text-sage-accent font-serif italic text-lg mb-2 block">Est. 2025</span>
+                        <h1 class="text-4xl lg:text-6xl font-serif font-bold text-text-header leading-tight mb-6">Daphne’s Dream</h1>
+                        <p class="text-lg text-gray-400 mb-8 max-w-lg mx-auto lg:mx-0">We bring countryside chic to the heart of your home with the elegance of Daphne.</p>
+                        <div class="flex gap-4 justify-center lg:justify-start">
+                            <button onclick="navigateTo('shop')" class="bg-sage-accent text-midnight-green px-8 py-3 rounded-full font-serif font-bold hover:bg-white transition-all shadow-lg hover:shadow-xl">Shop Now</button>
+                        </div>
+                    </div>
+                    <div class="relative fade-in">
+                        <img src="image_2.png" alt="Daphne Countryside Chic" class="w-full h-[450px] object-cover rounded-t-[150px] rounded-b-[20px] shadow-2xl border-4 border-midnight-light/50 opacity-90 hover:opacity-100 transition-opacity">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="py-12 bg-midnight-light/30 border-y border-white/5">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                 <h2 class="text-2xl font-serif text-text-header mb-6">Current Weather in İzmir</h2>
+                 <div id="weather-display-large" class="bg-midnight-green inline-block px-8 py-4 rounded-xl border border-white/10 shadow-lg">
+                    <span class="text-gray-400">Loading Weather Data...</span>
+                 </div>
+                 <p class="text-xs text-gray-500 mt-2">Powered by Open-Meteo API</p>
+            </div>
+        </section>
+    </template>
+        <section class="py-12 bg-midnight-light/30 border-y border-white/5">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                 <h2 class="text-2xl font-serif text-text-header mb-6">Current Weather in İzmir</h2>
+                 <div id="weather-display-large" class="bg-midnight-green inline-block px-8 py-4 rounded-xl border border-white/10 shadow-lg">
+                    <span class="text-gray-400">Loading Weather Data...</span>
+                 </div>
+                 <p class="text-xs text-gray-500 mt-2">Powered by Open-Meteo API</p>
+            </div>
+        </section>
+    </template>
+
+    <template id="view-shop">
+         <div class="max-w-7xl mx-auto px-4 py-12">
+            <h2 class="text-3xl font-serif text-text-header mb-8 text-center">Our Collection</h2>
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <div class="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto">
+                    <button class="filter-btn active px-4 py-2 rounded-full border border-sage-accent bg-sage-accent text-midnight-green text-sm font-bold" onclick="filterProducts('all')">All</button>
+                    <button class="filter-btn px-4 py-2 rounded-full border border-sage-accent text-sage-accent hover:bg-midnight-light text-sm" onclick="filterProducts('tea')">Tea Sets</button>
+                    <button class="filter-btn px-4 py-2 rounded-full border border-sage-accent text-sage-accent hover:bg-midnight-light text-sm" onclick="filterProducts('plate')">Plates</button>
+                </div>
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="search-input" placeholder="Search..." oninput="searchProducts(this.value)" class="w-full bg-midnight-light border border-white/10 rounded-full px-4 py-2 text-sm text-white focus:outline-none focus:border-sage-accent">
+                    <i data-lucide="search" class="absolute right-3 top-2.5 w-4 h-4 text-gray-400"></i>
+                </div>
+            </div>
+            <div id="shop-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+        </div>
+    </template>
+
+    <template id="view-product-detail">
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            <button onclick="navigateTo('shop')" class="flex items-center text-sage-accent mb-8 hover:text-white">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Back to Shop
+            </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 bg-midnight-light/50 p-8 rounded-2xl border border-white/5 mb-12">
+                <div class="h-[400px] md:h-[500px] rounded-xl overflow-hidden">
+                    <img id="detail-image" src="" class="w-full h-full object-cover">
+                </div>
+                <div class="flex flex-col justify-center">
+                    <span id="detail-category" class="text-sage-accent uppercase text-xs tracking-widest mb-2">Category</span>
+                    <h1 id="detail-name" class="text-4xl font-serif font-bold text-text-header mb-4">Product Name</h1>
+                    <p id="detail-price" class="text-2xl text-dusty-rose font-bold mb-6">$0.00</p>
+                    <p class="text-gray-400 mb-8 leading-relaxed">Handcrafted with the finest porcelain clay.</p>
+                    <div class="flex gap-4 mb-8">
+                        <button id="add-to-cart-btn" class="flex-1 bg-sage-accent text-midnight-green py-3 rounded-full font-bold hover:bg-white transition-colors">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            <h3 class="text-2xl font-serif text-text-header mb-6">You Might Also Like</h3>
+            <div id="related-products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </div>
+    </template>
+
+    <template id="view-cart">
+         <div class="max-w-4xl mx-auto px-4 py-12">
+            <h2 class="text-3xl font-serif text-text-header mb-8 text-center">Your Basket</h2>
+            <div id="cart-contents" class="bg-midnight-light/50 rounded-xl border border-white/5 overflow-hidden p-6"></div>
+            <div class="mt-8 flex justify-between items-center border-t border-white/10 pt-6">
+                <span class="text-xl text-text-header font-serif">Total</span>
+                <span id="cart-view-total" class="text-2xl font-bold text-sage-accent">$0.00</span>
+            </div>
+            <div class="mt-8 text-right">
+                <button onclick="alert('Proceeding to Checkout...')" class="bg-sage-accent text-midnight-green px-8 py-3 rounded-full font-bold hover:bg-white transition-colors">Proceed to Checkout</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="view-login">
+        <div class="max-w-md mx-auto px-4 py-20">
+            <div class="bg-midnight-light p-8 rounded-2xl border border-white/10 shadow-2xl text-center">
+                <div id="login-form-container">
+                    <h2 class="text-2xl font-serif text-text-header mb-6">Welcome Back</h2>
+                    <button onclick="handleGoogleLogin()" class="w-full bg-white text-gray-900 py-3 rounded-lg font-bold flex items-center justify-center gap-3 mb-6 hover:bg-gray-100 transition-colors">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5"> Sign in with Google
+                    </button>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="h-px bg-white/10 flex-1"></div><span class="text-xs text-gray-500">OR</span><div class="h-px bg-white/10 flex-1"></div>
+                    </div>
+                    <form onsubmit="handleNormalLogin(event)" class="space-y-4">
+                        <input type="email" placeholder="Email" class="w-full bg-midnight-green border border-white/10 px-4 py-3 rounded-lg text-white" required>
+                        <input type="password" placeholder="Password" class="w-full bg-midnight-green border border-white/10 px-4 py-3 rounded-lg text-white" required>
+                        <button type="submit" class="w-full bg-sage-accent text-midnight-green py-3 rounded-lg font-bold hover:bg-white transition-colors">Login</button>
+                    </form>
+                    <p class="mt-4 text-sm text-gray-400">No account? <button onclick="toggleAuthMode('register')" class="text-sage-accent hover:underline">Register</button></p>
+                </div>
+                <div id="register-form-container" class="hidden">
+                    <h2 class="text-2xl font-serif text-text-header mb-6">Create Account</h2>
+                    <form onsubmit="handleRegister(event)" class="space-y-4">
+                        <input type="text" placeholder="Name" class="w-full bg-midnight-green border border-white/10 px-4 py-3 rounded-lg text-white" required>
+                        <input type="email" placeholder="Email" class="w-full bg-midnight-green border border-white/10 px-4 py-3 rounded-lg text-white" required>
+                        <input type="password" placeholder="Password" class="w-full bg-midnight-green border border-white/10 px-4 py-3 rounded-lg text-white" required>
+                        <button type="submit" class="w-full border border-sage-accent text-sage-accent py-3 rounded-lg font-bold hover:bg-sage-accent hover:text-midnight-green transition-colors">Register</button>
+                    </form>
+                    <p class="mt-4 text-sm text-gray-400">Has account? <button onclick="toggleAuthMode('login')" class="text-sage-accent hover:underline">Login</button></p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="view-about">
+        <section class="py-20 bg-midnight-light text-white text-center border-t border-white/5 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-sage-accent/10 rounded-full blur-3xl"></div>
+            <div class="max-w-4xl mx-auto px-4 relative z-10">
+                <h2 class="text-4xl md:text-5xl font-serif mb-8 text-sage-accent">About Daphne</h2>
+                <p class="text-lg md:text-xl font-light text-gray-300 leading-relaxed mb-8">
+                    "We draw inspiration from the serenity of nature and the elegance of countryside chic. At Daphne, our mission is to bring the finest porcelain into your home with a modern, graceful touch."
+                </p>
+                <p class="text-md md:text-lg font-light text-gray-400 leading-relaxed mb-12">
+                    Whether for your <span class="text-sage-accent font-serif italic">midnight tea</span> or your most special gatherings, Daphne’s timeless pieces are designed to accompany you. Each piece is handmade, each piece is crafted with love.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 border-t border-white/10 pt-12">
+                    <div class="p-4 hover:bg-white/5 rounded-xl transition-colors">
+                        <i data-lucide="gem" class="w-8 h-8 text-sage-accent mx-auto mb-4"></i>
+                        <h4 class="font-serif text-xl mb-2 text-text-header">Finest Materials</h4>
+                    </div>
+                    <div class="p-4 hover:bg-white/5 rounded-xl transition-colors">
+                        <i data-lucide="brush" class="w-8 h-8 text-sage-accent mx-auto mb-4"></i>
+                        <h4 class="font-serif text-xl mb-2 text-text-header">Hand Painted</h4>
+                    </div>
+                    <div class="p-4 hover:bg-white/5 rounded-xl transition-colors">
+                        <i data-lucide="heart" class="w-8 h-8 text-sage-accent mx-auto mb-4"></i>
+                        <h4 class="font-serif text-xl mb-2 text-text-header">Made with Love</h4>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <div id="toast" class="fixed bottom-5 right-5 bg-midnight-light border border-sage-accent text-white px-6 py-3 rounded-lg shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-[70] flex items-center gap-3">
+        <i data-lucide="check-circle" class="text-sage-accent w-5 h-5"></i>
+        <div id="toast-msg" class="font-serif text-sm">Action Successful</div>
+    </div>
+
+    <div id="spotify-widget" class="fixed bottom-24 right-6 z-50">
+        <button onclick="toggleSpotify()" class="bg-[#1DB954] text-white w-14 h-14 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center">
+            <i data-lucide="music" class="w-8 h-8"></i>
+        </button>
+        <div id="spotify-player" class="hidden absolute bottom-16 right-0 w-80 bg-black rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+            <div class="bg-[#191414] p-3 flex justify-between items-center">
+                <span class="text-white text-xs font-bold flex items-center gap-2">
+                    <i data-lucide="coffee" class="w-4 h-4 text-sage-accent"></i> Tea Time Vibes
+                </span>
+                <button onclick="toggleSpotify()" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+           <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/playlist/5C9FEBovVkbG6nMkcPJblp?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
